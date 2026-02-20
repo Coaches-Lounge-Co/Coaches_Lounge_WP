@@ -1,0 +1,65 @@
+:root {
+  --cl-red: #e10600;
+  --cl-dark: #111111;
+  --cl-bg: #f6f7f9;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--cl-dark);
+}
+
+/* Brand */
+.brand-mark {
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 2px;
+  font-size: 1.6rem;
+}
+
+/* Section titles */
+.section-title {
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: 2rem;
+}
+
+/* Hero */
+.hero {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("../../public/closeUpBasketball.png");
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  padding: 6rem 0;
+}
+
+/* Dark overlay to make text readable */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.hero-content {
+  position: relative;
+  max-width: 900px;
+  color: white;
+}
+
+.hero-title {
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 2px;
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  margin-bottom: 0.75rem;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  max-width: 42rem;
+  margin: 0 auto;
+}
