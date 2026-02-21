@@ -63,3 +63,168 @@ body {
   max-width: 42rem;
   margin: 0 auto;
 }
+
+/* Coaches Lounge - Profile Page */
+.bg-cl-page {
+  background: var(--cl-bg, #f6f7f9);
+}
+/*Upload profile hero image*/
+.cl-profile-hero {
+  position: relative;
+  min-height: 260px;
+  padding: 2.5rem 0 2rem;
+  background-image: url("../../public/closeUpBasketball.png"); /* change if you want */
+  background-size: cover;
+  background-position: center;
+}
+
+.cl-profile-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.cl-avatar {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255,255,255,0.9);
+  position: relative;
+}
+
+.cl-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.cl-avatar__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: 2.2rem;
+  color: #fff;
+}
+
+.cl-profile-name {
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.cl-profile-sub {
+  line-height: 1.35;
+}
+
+.cl-btn-connect {
+  border-radius: 999px;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-weight: 700;
+}
+
+.cl-card {
+  border: 0;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+.cl-card-title {
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 1px;
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.cl-label {
+  font-weight: 700;
+}
+
+.cl-stat {
+  font-weight: 900;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.cl-stat--emph {
+  color: var(--cl-red, #e10600);
+}
+
+.cl-stat-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+  margin-top: 0.4rem;
+}
+
+.cl-highlight {
+  border-radius: 16px;
+  padding: 1.25rem 1.25rem;
+  min-height: 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cl-highlight--light {
+  background: #f3f4f6;
+  color: #111;
+}
+
+.cl-highlight--red {
+  background: linear-gradient(90deg, #e10600 0%, #b00000 100%);
+  color: #fff;
+}
+
+.cl-highlight-value {
+  font-weight: 900;
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.cl-highlight-label {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.cl-activity {
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: #fff;
+}
+
+.cl-activity-date {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.cl-activity-title {
+  margin-top: 0.2rem;
+  font-weight: 800;
+}
+
+.cl-note-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+}
