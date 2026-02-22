@@ -1,12 +1,21 @@
 import { NavLink } from "react-router-dom";
+import CL_Logo from "../assets/CL_Logo.png";
 
 export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div className="container">
-        <NavLink className="navbar-brand brand-mark" to="/">
-          COACHES LOUNGE
-        </NavLink>
+        <NavLink
+          className="navbar-brand d-flex align-items-center gap-2"
+          to="/"
+        >
+          <img
+            src={CL_Logo}
+            alt="Coaches Lounge Logo"
+            className="cl-navbar-logo"
+          />
+          <span className="brand-mark">COACHES LOUNGE</span>
+      </NavLink>
 
         <button
           className="navbar-toggler"

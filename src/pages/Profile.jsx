@@ -26,11 +26,11 @@ export default function Profile() {
 
   const profile = useMemo(
     () => ({
-      name: "Matt Blackburn",
+      name: "DeAndre Vaughn",
       role: "Player",
-      school: "Fairview High School",
+      school: "St. Rita of Cascia High School",
       positions: "Point Guard / Shooting Guard",
-      location: "Cleveland, OH",
+      location: "Chicago, IL",
       avatarUrl: profilePic,
       strengths: ["Ball Handling", "Quickness"],
       goals: ["Improve Shooting", "Gain more exposure"],

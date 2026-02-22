@@ -2,6 +2,8 @@
   --cl-red: #e10600;
   --cl-dark: #111111;
   --cl-bg: #f6f7f9;
+  --cl-red-text: #a40000;     /* darker red for text on white */
+  --cl-red-hover: #7f0000;    /* hover state for text links */
 }
 
 body {
@@ -25,15 +27,15 @@ body {
 
 /* Hero */
 .hero {
-  min-height: 80vh;
+  min-height: clamp(520px, 80vh, 820px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-image: url("../../public/closeUpBasketball.png");
+  background-image: url("/closeUpBasketball.png");
   background-size: cover;
   background-position: center;
   position: relative;
-  padding: 6rem 0;
+  padding: clamp(4rem, 8vh, 7rem) 0;
 }
 
 /* Dark overlay to make text readable */
@@ -41,7 +43,12 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.65) 0%,
+    rgba(0,0,0,0.50) 40%,
+    rgba(0,0,0,0.65) 100%
+  );
 }
 
 .hero-content {
@@ -62,6 +69,12 @@ body {
   color: rgba(255, 255, 255, 0.9);
   max-width: 42rem;
   margin: 0 auto;
+}
+
+@media (max-width: 576px) {
+  .hero-subtitle {
+    font-size: 1rem;
+  }
 }
 
 /* Coaches Lounge - Profile Page */
@@ -91,6 +104,13 @@ body {
   overflow: hidden;
   border: 4px solid rgba(255,255,255,0.9);
   position: relative;
+}
+
+@media (max-width: 576px) {
+  .cl-avatar {
+    width: 160px;
+    height: 160px;
+  }
 }
 
 .cl-avatar-img {
@@ -227,4 +247,77 @@ body {
   display: grid;
   place-items: center;
   font-weight: 800;
+}
+
+/*brand buttons*/
+.btn-primary {
+  background-color: var(--cl-red);
+  border-color: var(--cl-red);
+}
+
+.btn-primary:hover {
+  background-color: #c00500;
+  border-color: #c00500;
+}
+
+.cl-section {
+  padding: clamp(3rem, 6vh, 5rem) 0;
+}
+
+.card {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.10);
+}
+
+.btn-outline-primary {
+  color: var(--cl-red-text);
+  border-color: var(--cl-red-text);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--cl-red);
+  border-color: var(--cl-red);
+  color: #fff;
+}
+
+#events a {
+  color: var(--cl-red);
+  font-weight: 600;
+}
+
+#events a:hover {
+  color: #b00000;
+}
+
+.badge.text-bg-secondary {
+  background-color: rgba(225, 6, 0, 0.1) !important;
+  color: var(--cl-red);
+  font-weight: 600;
+}
+
+#events .view-all-link {
+  color: var(--cl-red-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+#events .view-all-link:hover {
+  color: var(--cl-red-hover);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.badge.cl-badge {
+  background: rgba(164, 0, 0, 0.12);
+  color: var(--cl-red-text);
+  font-weight: 700;
+}
+
+.cl-navbar-logo {
+  height: 80px;
+  width: auto;
+  object-fit: contain;
 }
