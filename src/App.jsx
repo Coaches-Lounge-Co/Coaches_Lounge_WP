@@ -13,7 +13,12 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/messages" element={<Messages />} />
+
+        {/* existing "my profile" page route */}
         <Route path="/profile" element={<Profile />} />
+
+        {/* NEW: profile detail page route */}
+        <Route path="/players/:id" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

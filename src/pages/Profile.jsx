@@ -1,101 +1,54 @@
 import { useMemo, useState } from "react";
-import profilePic from "../../src/assets/ProfilePic.png";
-
-function getInitials(name) {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-}
-
-function stringToColor(str) {
-  let hash = 0;
-
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const hue = Math.abs(hash) % 360;
-
-  return `hsl(${hue}, 70%, 40%)`;
-}
+import { useNavigate, useParams } from "react-router-dom";
+import { PLAYERS } from "../data/players";
+import { getInitials, stringToColor } from "../utils/profileUtils";
 
 export default function Profile() {
+  const { id } = useParams(); // works for /players/:id
+  const navigate = useNavigate();
   const [connected, setConnected] = useState(true);
 
-  const profile = useMemo(
-    () => ({
-      name: "DeAndre Vaughn",
-      role: "Player",
-      school: "St. Rita of Cascia High School",
-      positions: "Point Guard / Shooting Guard",
-      location: "Chicago, IL",
-      avatarUrl: profilePic,
-      strengths: ["Ball Handling", "Quickness"],
-      goals: ["Improve Shooting", "Gain more exposure"],
-      stats: {
-        activeEvents: 18,
-        totalGames: 222,
-        connections: 127,
-      },
-      highlights: [
-        { value: "23.1", label: "Points / Game", tone: "light" },
-        { value: "6.8", label: "Assists / Game", tone: "light" },
-        { value: "3.2", label: "Steals / Game", tone: "red" },
-        { value: "62%", label: "Field Goal %", tone: "light" },
-        { value: "5.6", label: "Rebounds / Game", tone: "red" },
-      ],
-      recentActivity: [
-        { date: "APRIL 20", title: "Winning the Freeway Championship" },
-        { date: "MARCH 15", title: "Attended Nike Elite Camp" },
-      ],
-      coachesNotes: [
-        {
-          coach: "Coach Bradley Donovan",
-          date: "APRIL 22",
-          note:
-            "Great job leading the team. Keep pushing your pace and decision-making—your next level is consistency.",
-        },
-      ],
-    }),
-    []
-  );
+  const profile = useMemo(() => {
+    // For /profile (no id), show first mock as default
+    if (!id) return PLAYERS[0];
+    return PLAYERS.find((p) => p.id === id);
+  }, [id]);
 
-    const user = {
-        name: profile.name,
-        avatarUrl: profile.avatarUrl || null
-    };
+  if (!profile) {
+    return (
+      <div className="container py-5">
+        <h1 className="section-title">Profile not found</h1>
+        <p className="text-muted">No player found for ID: {id}</p>
+        <button className="btn btn-primary" onClick={() => navigate("/discover")}>
+          Back to Discover
+        </button>
+      </div>
+    );
+  }
 
+  const user = {
+    name: profile.name,
+    avatarUrl: profile.avatarUrl || null,
+  };
 
   return (
     <div className="bg-cl-page">
-      {/* Header */}
       <header className="cl-profile-hero">
         <div className="cl-profile-hero__overlay" />
         <div className="container position-relative">
           <div className="row align-items-end g-4">
             <div className="col-12 col-lg-8 d-flex align-items-end gap-4">
               <div className="cl-avatar">
-                {/* <div className="cl-avatar__inner">{profile.avatarInitials}</div> */}
-                <div className="cl-avatar">
-                    {user.avatarUrl ? (
-                        <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        className="cl-avatar-img"
-                        />
-                    ) : (
-                        <div
-                        className="cl-avatar__inner"
-                        style={{
-                            backgroundColor: stringToColor(user.name),
-                        }}
-                        >
-                        {getInitials(user.name)}
-                        </div>
-                    )}
-                </div>
+                {user.avatarUrl ? (
+                  <img src={user.avatarUrl} alt={user.name} className="cl-avatar-img" />
+                ) : (
+                  <div
+                    className="cl-avatar__inner"
+                    style={{ backgroundColor: stringToColor(user.name) }}
+                  >
+                    {getInitials(user.name)}
+                  </div>
+                )}
               </div>
 
               <div className="text-white pb-2">
@@ -115,11 +68,13 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="col-12 col-lg-4 d-flex justify-content-lg-end">
+            <div className="col-12 col-lg-4 d-flex justify-content-lg-end gap-2">
+              <button className="btn btn-lg btn-outline-light" onClick={() => navigate("/discover")}>
+                Back
+              </button>
+
               <button
-                className={`btn btn-lg cl-btn-connect ${
-                  connected ? "btn-outline-light" : "btn-danger"
-                }`}
+                className={`btn btn-lg cl-btn-connect ${connected ? "btn-outline-light" : "btn-danger"}`}
                 onClick={() => setConnected((v) => !v)}
               >
                 {connected ? "DISCONNECT" : "CONNECT"}
