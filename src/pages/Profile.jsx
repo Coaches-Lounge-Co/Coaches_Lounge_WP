@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PLAYERS } from "../data/players";
+import { COACHES } from "../data/coaches";
 import { getInitials, stringToColor } from "../utils/profileUtils";
 
 export default function Profile() {
@@ -11,7 +12,7 @@ export default function Profile() {
   const profile = useMemo(() => {
     // For /profile (no id), show first mock as default
     if (!id) return PLAYERS[0];
-    return PLAYERS.find((p) => p.id === id);
+    return PLAYERS.find((p) => p.id === id) || COACHES.find((c) => c.id === id);
   }, [id]);
 
   if (!profile) {
