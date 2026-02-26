@@ -1,7 +1,7 @@
 // src/pages/Auth.jsx
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/authContext";
 
 const emptyPlayer = {
   role: "Player",
