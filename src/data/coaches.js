@@ -1,5 +1,5 @@
 // src/data/coaches.js
-import Coach_BDonovan from "../assets/coach_BDonovan.png";
+import Coach_BDonovan from "../assets/Coach_BDonovan.png";
 
 export const COACHES = [
   {
