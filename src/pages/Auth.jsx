@@ -261,6 +261,7 @@ export default function Auth() {
 
         <div className="text-muted small mt-3">
           Note: This only simulates authentication for demo purposes. Don't use a real email or password, as there's no real security here.
+        </div>
       </div>
     </div>
   );
