@@ -56,7 +56,7 @@ export const PLAYERS = [
             connections: 64,
         },
         highlights: [
-            { value: "14.2", label: "Points / Game", tone: "light" },
+            { value: "15.2", label: "Points / Game", tone: "light" },
             { value: "8.1", label: "Rebounds / Game", tone: "red" },
             { value: "41%", label: "3PT %", tone: "light" },
         ],
