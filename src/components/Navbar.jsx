@@ -1,21 +1,23 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import CL_Logo from "../assets/CL_Logo.png";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const { currentProfile, signOut } = useAuth();
+  const isLoggedIn = !!currentProfile;
+
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div className="container">
-        <NavLink
-          className="navbar-brand d-flex align-items-center gap-2"
-          to="/"
-        >
+        <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
           <img
             src={CL_Logo}
             alt="Coaches Lounge Logo"
             className="cl-navbar-logo"
           />
           <span className="brand-mark">COACHES LOUNGE</span>
-      </NavLink>
+        </NavLink>
 
         <button
           className="navbar-toggler"
@@ -36,21 +38,50 @@ export default function Navbar() {
                 Discover
               </NavLink>
             </li>
+
             <li className="nav-item">
               <NavLink className="nav-link" to="/messages">
                 Messages
               </NavLink>
             </li>
-            <li className="nav-item">
-              <NavLink className="nav-link" to="/profile">
-                Profile
-              </NavLink>
-            </li>
-            <li className="nav-item ms-lg-2">
-              <NavLink className="btn btn-danger px-3" to="/discover">
-                Join Now
-              </NavLink>
-            </li>
+
+            {/* ✅ Auth-aware section */}
+            {!isLoggedIn ? (
+              <>
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/auth">
+                    Sign In
+                  </NavLink>
+                </li>
+
+                <li className="nav-item ms-lg-2">
+                  <NavLink className="btn btn-danger px-3" to="/auth">
+                    Join Now
+                  </NavLink>
+                </li>
+              </>
+            ) : (
+              <>
+                <li className="nav-item">
+                  <NavLink className="nav-link" to="/my-profile">
+                    My Profile
+                  </NavLink>
+                </li>
+
+                <li className="nav-item ms-lg-2">
+                  <button
+                    className="btn btn-outline-danger px-3"
+                    onClick={() => {
+                      signOut();
+                      navigate("/");
+                    }}
+                    type="button"
+                  >
+                    Sign Out
+                  </button>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>

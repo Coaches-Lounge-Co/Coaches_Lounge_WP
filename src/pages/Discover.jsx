@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { PEOPLE } from "../utils/people";
+//import { PEOPLE } from "../utils/people";
+import { getAllPeople } from "../utils/peopleStore";
 
 export default function Discover() {
   const [query, setQuery] = useState("");
@@ -11,7 +12,7 @@ export default function Discover() {
   // Unique locations from everyone
   const locations = useMemo(() => {
     const set = new Set();
-    PEOPLE.forEach((p) => {
+    getAllPeople().forEach((p) => {
       if (p.location) set.add(p.location);
     });
     return ["Any", ...Array.from(set).sort()];
@@ -20,7 +21,7 @@ export default function Discover() {
   // Roles from data (Player / Coach)
   const roles = useMemo(() => {
     const set = new Set();
-    PEOPLE.forEach((p) => {
+    getAllPeople().forEach((p) => {
       if (p.role) set.add(p.role);
     });
     return ["Any", ...Array.from(set).sort()];
@@ -32,7 +33,7 @@ export default function Discover() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    return PEOPLE.filter((p) => {
+    return getAllPeople().filter((p) => {
       const haystack = `${p.name} ${p.school ?? ""} ${p.program ?? ""} ${p.positions ?? ""} ${p.location ?? ""}`.toLowerCase();
       const matchesQuery = !q || haystack.includes(q);
 

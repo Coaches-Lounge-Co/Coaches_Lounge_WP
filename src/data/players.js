@@ -1,5 +1,7 @@
 // src/data/players.js
 import profilePic from "../assets/ProfilePic.png";
+import JWhitmore from "../assets/Jalen_Whitmore.png"
+import NBennett from "../assets/Noah_Bennett.png";
 
 export const PLAYERS = [
     {
@@ -110,7 +112,7 @@ export const PLAYERS = [
         school: "Westfield High School",
         positions: "Shooting Guard",
         location: "Fairfax, VA",
-        avatarUrl: null,
+        avatarUrl: JWhitmore,
         strengths: ["Catch & Shoot", "Off-Ball Movement"],
         goals: ["Expand playmaking", "Increase assist numbers"],
         stats: {
@@ -234,7 +236,7 @@ export const PLAYERS = [
         school: "Oakton High School",
         positions: "Small Forward / Power Forward",
         location: "Vienna, VA",
-        avatarUrl: null,
+        avatarUrl: NBennett,
         strengths: ["Versatility", "High IQ", "Team Defense"],
         goals: ["Increase scoring output"],
         stats: {
@@ -243,8 +245,11 @@ export const PLAYERS = [
             connections: 33,
         },
         highlights: [
-            { value: "12.1", label: "Points / Game", tone: "light" },
-            { value: "6.7", label: "Rebounds / Game", tone: "light" },
+            { value: "22.3", label: "Points / Game", tone: "light" },
+            { value: "2.4", label: "Assists / Game", tone: "light" },
+            { value: "6.4", label: "Steals / Game", tone: "red" },
+            { value: "67%", label: "Field Goal %", tone: "light" },
+            { value: "9.4", label: "Rebounds / Game", tone: "red" },
         ],
         recentActivity: [
             { date: "MARCH 12", title: "Regional Finals Appearance" },
