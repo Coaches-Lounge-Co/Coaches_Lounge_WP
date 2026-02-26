@@ -94,7 +94,7 @@ export default function Home() {
                     <p className="card-text text-muted mb-2">
                       {e.date} • {e.location}
                     </p>
-                    <span className="badge cl-badge">{e.level}</span>
+                    <span className={"badge cl-badge"}>{e.level}</span>
                   </div>
                   <div className="card-footer bg-white border-0 pt-0">
                     <a className="btn btn-outline-primary w-100" href="#enter">
