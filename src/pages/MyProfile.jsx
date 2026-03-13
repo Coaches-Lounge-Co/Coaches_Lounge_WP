@@ -38,23 +38,27 @@ export default function MyProfile() {
     reader.readAsDataURL(file);
   }
 
-  function save() {
-    updateMyProfile({
+ async function save() {
+  try {
+    await updateMyProfile({
       name: draft.name,
       location: draft.location,
       avatarUrl: draft.avatarUrl || null,
       role: draft.role,
 
-      school: draft.role === "Player" ? draft.school : undefined,
-      positions: draft.role === "Player" ? draft.positions : undefined,
-      program: draft.role === "Coach" ? draft.program : undefined,
+      school: draft.role === "Player" ? draft.school || "" : "",
+      positions: draft.role === "Player" ? draft.positions || "" : "",
+      program: draft.role === "Coach" ? draft.program || "" : "",
 
       strengths: splitComma(draft.strengthsText || ""),
       goals: splitComma(draft.goalsText || ""),
     });
 
     nav(`/people/${currentProfile.id}`);
+  } catch (error) {
+    alert(error.message || "Failed to save profile.");
   }
+}
 
   if (!isReady) {
     return (

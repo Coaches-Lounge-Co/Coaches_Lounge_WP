@@ -1,6 +1,5 @@
-// src/pages/Auth.jsx
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
 const emptyPlayer = {
@@ -31,19 +30,20 @@ function splitComma(text) {
 
 export default function Auth() {
   const nav = useNavigate();
+  const location = useLocation();
   const { signIn, signUp } = useAuth();
-  const [mode, setMode] = useState("signin"); // "signin" | "signup"
 
-  // auth fields
+  const [mode, setMode] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // profile fields
   const [role, setRole] = useState("Player");
   const [avatarUrl, setAvatarUrl] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [player, setPlayer] = useState(emptyPlayer);
   const [coach, setCoach] = useState(emptyCoach);
+
+  const redirectTo = location.state?.from || "/my-profile";
 
   const profileDraft = useMemo(() => {
     const base = role === "Player" ? player : coach;
@@ -53,10 +53,8 @@ export default function Auth() {
       name: base.name,
       location: base.location,
       avatarUrl,
-
       strengths: splitComma(base.strengthsText),
       goals: splitComma(base.goalsText),
-
       stats: { activeEvents: 0, totalGames: 0, connections: 0 },
       highlights: [],
       recentActivity: [],
@@ -76,31 +74,38 @@ export default function Auth() {
   function onPickAvatar(file) {
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => setAvatarUrl(reader.result); // data URL
+    reader.onload = () => setAvatarUrl(reader.result);
     reader.readAsDataURL(file);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setSubmitting(true);
 
     try {
+      if (!email.trim()) throw new Error("Email is required.");
+      if (!password.trim()) throw new Error("Password is required.");
+
       if (mode === "signin") {
         await signIn({ email, password });
-        nav("/my-profile");
+        nav(redirectTo);
         return;
       }
 
-      // signup
       if (!profileDraft.name.trim()) throw new Error("Name is required.");
-      if (role === "Player" && !profileDraft.positions?.trim()) throw new Error("Positions are required for players.");
-      if (role === "Coach" && !profileDraft.program?.trim()) throw new Error("Program is required for coaches.");
+      if (role === "Player" && !profileDraft.positions?.trim()) {
+        throw new Error("Positions are required for players.");
+      }
+      if (role === "Coach" && !profileDraft.program?.trim()) {
+        throw new Error("Program is required for coaches.");
+      }
 
-      const id = await signUp({ email, password, profile: profileDraft });
-
-      // after sign up, go to their public profile or my-profile
-      nav(`/people/${id}`);
+      await signUp({ email, password, profile: profileDraft });
+      nav("/my-profile");
     } catch (err) {
       alert(err.message || "Something went wrong.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -121,6 +126,7 @@ export default function Auth() {
               className={`btn ${mode === "signin" ? "btn-primary" : "btn-outline-primary"}`}
               onClick={() => setMode("signin")}
               type="button"
+              disabled={submitting}
             >
               Sign In
             </button>
@@ -128,6 +134,7 @@ export default function Auth() {
               className={`btn ${mode === "signup" ? "btn-primary" : "btn-outline-primary"}`}
               onClick={() => setMode("signup")}
               type="button"
+              disabled={submitting}
             >
               Sign Up
             </button>
@@ -136,7 +143,12 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="row g-3">
             <div className="col-12">
               <label className="form-label fw-bold">Email</label>
-              <input className="form-control form-control-lg" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input
+                type="email"
+                className="form-control form-control-lg"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
 
             <div className="col-12">
@@ -148,7 +160,9 @@ export default function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
               />
               {mode === "signup" && (
-                <div className="small text-muted mt-1">Mock-only for now (later: Firebase/Supabase).</div>
+                <div className="small text-muted mt-1">
+                  Your account will now use Firebase authentication.
+                </div>
               )}
             </div>
 
@@ -168,11 +182,24 @@ export default function Auth() {
 
                 <div className="col-12">
                   <label className="form-label fw-bold">Profile photo</label>
-                  <input className="form-control" type="file" accept="image/*" onChange={(e) => onPickAvatar(e.target.files?.[0])} />
+                  <input
+                    className="form-control"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onPickAvatar(e.target.files?.[0])}
+                  />
                   {avatarUrl && (
                     <div className="mt-3 d-flex align-items-center gap-3">
-                      <img src={avatarUrl} alt="preview" style={{ width: 72, height: 72, borderRadius: 999, objectFit: "cover" }} />
-                      <button type="button" className="btn btn-outline-primary" onClick={() => setAvatarUrl(null)}>
+                      <img
+                        src={avatarUrl}
+                        alt="preview"
+                        style={{ width: 72, height: 72, borderRadius: 999, objectFit: "cover" }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-outline-primary"
+                        onClick={() => setAvatarUrl(null)}
+                      >
                         Remove
                       </button>
                     </div>
@@ -252,15 +279,15 @@ export default function Auth() {
             )}
 
             <div className="col-12 d-grid mt-2">
-              <button className="btn btn-primary btn-lg" type="submit">
-                {mode === "signin" ? "Sign In" : "Create Profile"}
+              <button className="btn btn-primary btn-lg" type="submit" disabled={submitting}>
+                {submitting
+                  ? "Please wait..."
+                  : mode === "signin"
+                  ? "Sign In"
+                  : "Create Profile"}
               </button>
             </div>
           </form>
-        </div>
-
-        <div className="text-muted small mt-3">
-          Note: This only simulates authentication for demo purposes. Don't use a real email or password, as there's no real security here.
         </div>
       </div>
     </div>

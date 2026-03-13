@@ -1,94 +1,114 @@
-// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+} from "firebase/auth";
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import { auth, db } from "../firebase/firebase";
 
 const AuthContext = createContext(null);
 
-const LS_USER = "cl_current_user";       // { id }
-const LS_PROFILES = "cl_profiles";       // { [id]: profileObject }
-
-function readJSON(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJSON(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
 export function AuthProvider({ children }) {
-  const [currentUserId, setCurrentUserId] = useState(() => readJSON(LS_USER, null)?.id ?? null);
-  const [profiles, setProfiles] = useState(() => readJSON(LS_PROFILES, {}));
+  const [firebaseUser, setFirebaseUser] = useState(null);
+  const [currentProfile, setCurrentProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // persist profiles
   useEffect(() => {
-    writeJSON(LS_PROFILES, profiles);
-  }, [profiles]);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
 
-  // persist current user
-  useEffect(() => {
-    if (currentUserId) writeJSON(LS_USER, { id: currentUserId });
-    else localStorage.removeItem(LS_USER);
-  }, [currentUserId]);
+      if (!user) {
+        setCurrentProfile(null);
+        setLoading(false);
+        return;
+      }
 
-  const currentProfile = currentUserId ? profiles[currentUserId] : null;
+      try {
+        const profileRef = doc(db, "profiles", user.uid);
+        const profileSnap = await getDoc(profileRef);
 
-  function signUp({ email, password, profile }) {
-    // mock auth: email must be unique
-    const existing = Object.values(profiles).find((p) => p.email?.toLowerCase() === email.toLowerCase());
-    if (existing) throw new Error("Email already in use.");
+        if (profileSnap.exists()) {
+          setCurrentProfile({ id: user.uid, ...profileSnap.data() });
+        } else {
+          setCurrentProfile(null);
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        setCurrentProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    });
 
-    const id = crypto.randomUUID();
+    return unsubscribe;
+  }, []);
 
-    const newProfile = {
-      id,
-      email,
-      // DO NOT store real passwords in real apps. This is mock-only.
-      _pw: password,
-      createdAt: new Date().toISOString(),
+  async function signUp({ email, password, profile }) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    const profileData = {
       ...profile,
+      email,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     };
 
-    setProfiles((prev) => ({ ...prev, [id]: newProfile }));
-    setCurrentUserId(id);
-    return id;
+    await setDoc(doc(db, "profiles", uid), profileData);
+
+    setCurrentProfile({ id: uid, ...profileData });
+    return uid;
   }
 
-  function signIn({ email, password }) {
-    const match = Object.values(profiles).find(
-      (p) => p.email?.toLowerCase() === email.toLowerCase() && p._pw === password
-    );
-    if (!match) throw new Error("Invalid email or password.");
-    setCurrentUserId(match.id);
-    return match.id;
+  async function signIn({ email, password }) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
+
+    const profileSnap = await getDoc(doc(db, "profiles", uid));
+    if (profileSnap.exists()) {
+      setCurrentProfile({ id: uid, ...profileSnap.data() });
+    }
+
+    return uid;
   }
 
-  function signOut() {
-    setCurrentUserId(null);
+  async function signOut() {
+    await firebaseSignOut(auth);
+    setCurrentProfile(null);
   }
 
-  function updateMyProfile(patch) {
-    if (!currentUserId) throw new Error("Not signed in.");
-    setProfiles((prev) => ({
-      ...prev,
-      [currentUserId]: { ...prev[currentUserId], ...patch, updatedAt: new Date().toISOString() },
-    }));
+  async function updateMyProfile(patch) {
+    if (!firebaseUser) throw new Error("Not signed in.");
+
+    const profileRef = doc(db, "profiles", firebaseUser.uid);
+
+    const safePatch = {
+      ...patch,
+      updatedAt: serverTimestamp(),
+    };
+
+    await updateDoc(profileRef, safePatch);
+
+    const updatedSnap = await getDoc(profileRef);
+    if (updatedSnap.exists()) {
+      setCurrentProfile({ id: firebaseUser.uid, ...updatedSnap.data() });
+    }
   }
 
   const value = useMemo(
     () => ({
-      currentUserId,
+      currentUserId: firebaseUser?.uid ?? null,
       currentProfile,
+      loading,
       signUp,
       signIn,
       signOut,
       updateMyProfile,
-      profiles, // optional (debug/admin)
+      firebaseUser,
     }),
-    [currentUserId, currentProfile, profiles]
+    [firebaseUser, currentProfile, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

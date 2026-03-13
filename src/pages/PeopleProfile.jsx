@@ -1,10 +1,59 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getPersonByIdMerged as getPersonById } from "../utils/peopleStore";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase/firebase";
+import { PEOPLE } from "../utils/people";
 import { getInitials, stringToColor } from "../utils/profileUtils";
 
 export default function PeopleProfile() {
   const { id } = useParams();
-  const person = getPersonById(id);
+  const [person, setPerson] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadPerson() {
+      try {
+        // 1. Check demo/local bundled data first
+        const demoPerson = PEOPLE.find((p) => p.id === id);
+        if (demoPerson) {
+          setPerson(demoPerson);
+          setLoading(false);
+          return;
+        }
+
+        // 2. Check Firestore for real created profiles
+        const docRef = doc(db, "profiles", id);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          setPerson({
+            id: docSnap.id,
+            ...docSnap.data(),
+          });
+        } else {
+          setPerson(null);
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        setPerson(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPerson();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="container py-5">
+        <h1 className="section-title">Profile</h1>
+        <div className="cl-card p-4">
+          <p className="text-muted mb-0">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!person) {
     return (
@@ -27,7 +76,6 @@ export default function PeopleProfile() {
 
   return (
     <div className="bg-cl-page">
-      {/* Hero */}
       <header className="cl-profile-hero">
         <div className="cl-profile-hero__overlay" />
         <div className="container position-relative py-4">
@@ -39,9 +87,9 @@ export default function PeopleProfile() {
                 ) : (
                   <div
                     className="cl-avatar__inner"
-                    style={{ backgroundColor: stringToColor(person.name) }}
+                    style={{ backgroundColor: stringToColor(person.name || "Profile") }}
                   >
-                    {getInitials(person.name)}
+                    {getInitials(person.name || "Profile")}
                   </div>
                 )}
               </div>
@@ -56,8 +104,8 @@ export default function PeopleProfile() {
 
                 <p className="cl-profile-sub mt-2 mb-0 text-white-50">
                   {person.role === "Player"
-                    ? `${person.positions ?? ""} • ${person.school ?? ""}`
-                    : `${person.program ?? ""} • ${person.location ?? ""}`}
+                    ? `${person.positions ?? ""}${person.school ? ` • ${person.school}` : ""}`
+                    : `${person.program ?? ""}${person.location ? ` • ${person.location}` : ""}`}
                 </p>
 
                 {person.role === "Player" && (
@@ -73,10 +121,8 @@ export default function PeopleProfile() {
         </div>
       </header>
 
-      {/* Content */}
       <main className="container py-5">
         <div className="row g-4">
-          {/* About */}
           <div className="col-12 col-lg-8">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
@@ -85,22 +131,30 @@ export default function PeopleProfile() {
                 <div className="mb-3">
                   <div className="cl-label">Strengths:</div>
                   <div className="d-flex flex-wrap gap-2 mt-2">
-                    {(person.strengths ?? []).map((s) => (
-                      <span key={s} className="badge rounded-pill bg-light text-dark px-3 py-2">
-                        {s}
-                      </span>
-                    ))}
+                    {(person.strengths ?? []).length > 0 ? (
+                      person.strengths.map((s) => (
+                        <span key={s} className="badge rounded-pill bg-light text-dark px-3 py-2">
+                          {s}
+                        </span>
+                      ))
+                    ) : (
+                      <div className="text-muted">No strengths added yet.</div>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <div className="cl-label">Goals:</div>
                   <div className="d-flex flex-wrap gap-2 mt-2">
-                    {(person.goals ?? []).map((g) => (
-                      <span key={g} className="badge rounded-pill bg-light text-dark px-3 py-2">
-                        {g}
-                      </span>
-                    ))}
+                    {(person.goals ?? []).length > 0 ? (
+                      person.goals.map((g) => (
+                        <span key={g} className="badge rounded-pill bg-light text-dark px-3 py-2">
+                          {g}
+                        </span>
+                      ))
+                    ) : (
+                      <div className="text-muted">No goals added yet.</div>
+                    )}
                   </div>
                 </div>
 
@@ -113,7 +167,6 @@ export default function PeopleProfile() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="col-12 col-lg-4">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
@@ -128,7 +181,6 @@ export default function PeopleProfile() {
             </div>
           </div>
 
-          {/* Highlights */}
           <div className="col-12 col-lg-8">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
@@ -149,7 +201,6 @@ export default function PeopleProfile() {
             </div>
           </div>
 
-          {/* Recent + Notes */}
           <div className="col-12 col-lg-4">
             <div className="d-flex flex-column gap-4">
               <div className="card cl-card">

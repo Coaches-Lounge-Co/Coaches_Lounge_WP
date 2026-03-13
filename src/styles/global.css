@@ -321,3 +321,13 @@ body {
   width: auto;
   object-fit: contain;
 }
+
+.cl-card-clickable {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  cursor: pointer;
+}
+
+.cl-card-clickable:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+}
