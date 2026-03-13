@@ -69,8 +69,6 @@ export default function PeopleProfile() {
     );
   }
 
-  const stats = person.stats ?? { activeEvents: 0, totalGames: 0, connections: 0 };
-  const highlights = person.highlights ?? [];
   const recentActivity = person.recentActivity ?? [];
   const coachesNotes = person.coachesNotes ?? [];
 
@@ -123,7 +121,7 @@ export default function PeopleProfile() {
 
       <main className="container py-5">
         <div className="row g-4">
-          <div className="col-12 col-lg-8">
+          <div className="col-12">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
                 <h2 className="cl-card-title mb-4">ABOUT</h2>
@@ -167,34 +165,33 @@ export default function PeopleProfile() {
             </div>
           </div>
 
-          <div className="col-12 col-lg-4">
+          <div className="col-12">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
-                <h2 className="cl-card-title mb-4">STATS</h2>
+                <h2 className="cl-card-title mb-4">HIGHLIGHT REEL</h2>
 
-                <div className="row g-3 text-center">
-                  <StatBlock value={stats.activeEvents} label="ACTIVE EVENTS" />
-                  <StatBlock value={stats.totalGames} label="TOTAL GAMES" emphasize />
-                  <StatBlock value={stats.connections} label="CONNECTIONS" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-12 col-lg-8">
-            <div className="card cl-card h-100">
-              <div className="card-body p-4">
-                <h2 className="cl-card-title mb-4">PERFORMANCE HIGHLIGHTS</h2>
-
-                {highlights.length === 0 ? (
-                  <div className="text-muted">No highlights added yet.</div>
+                {(!person.videoHighlights || person.videoHighlights.length === 0) ? (
+                  <div className="text-muted">No highlight videos added yet.</div>
                 ) : (
-                  <div className="row g-3">
-                    {highlights.map((h) => (
-                      <div key={h.label} className="col-12 col-md-6">
-                        <HighlightCard {...h} />
-                      </div>
-                    ))}
+                  <div className="row g-4">
+                    {person.videoHighlights.map((video, index) => {
+                      const embedUrl = getYouTubeEmbedUrl(video.url);
+
+                      if (!embedUrl) return null;
+
+                      return (
+                        <div key={`${video.url}-${index}`} className="col-12 col-md-6">
+                          <div className="ratio ratio-16x9 rounded overflow-hidden">
+                            <iframe
+                              src={embedUrl}
+                              title={`Highlight video ${index + 1}`}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -252,23 +249,35 @@ export default function PeopleProfile() {
   );
 }
 
-function StatBlock({ value, label, emphasize = false }) {
-  return (
-    <div className="col-4">
-      <div className={`cl-stat ${emphasize ? "cl-stat--emph" : ""}`}>{value}</div>
-      <div className="cl-stat-label">{label}</div>
-    </div>
-  );
-}
+function getYouTubeEmbedUrl(url) {
+  if (!url) return null;
 
-function HighlightCard({ value, label, tone = "light" }) {
-  const className =
-    tone === "red" ? "cl-highlight cl-highlight--red" : "cl-highlight cl-highlight--light";
+  try {
+    const parsed = new URL(url);
 
-  return (
-    <div className={className}>
-      <div className="cl-highlight-value">{value}</div>
-      <div className="cl-highlight-label">{label}</div>
-    </div>
-  );
+    if (parsed.hostname.includes("youtu.be")) {
+      const videoId = parsed.pathname.slice(1);
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+    }
+
+    if (parsed.hostname.includes("youtube.com")) {
+      if (parsed.pathname === "/watch") {
+        const videoId = parsed.searchParams.get("v");
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+
+      if (parsed.pathname.startsWith("/shorts/")) {
+        const videoId = parsed.pathname.split("/shorts/")[1];
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+      }
+
+      if (parsed.pathname.startsWith("/embed/")) {
+        return url;
+      }
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
 }

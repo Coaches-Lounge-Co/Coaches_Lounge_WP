@@ -57,8 +57,10 @@ export default function Auth() {
       goals: splitComma(base.goalsText),
       stats: { activeEvents: 0, totalGames: 0, connections: 0 },
       highlights: [],
+      videoHighlights: [],
       recentActivity: [],
       coachesNotes: [],
+      
     };
 
     if (role === "Player") {

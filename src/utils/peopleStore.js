@@ -29,7 +29,9 @@ function mapProfileToPerson(p) {
     strengths: p.strengths || [],
     goals: p.goals || [],
     stats: p.stats || { activeEvents: 0, totalGames: 0, connections: 0 },
-    highlights: p.highlights || [],
+    videoHighlights: [
+      { url: "https://youtube.com/watch?v=xxxxx" }
+    ],
     recentActivity: p.recentActivity || [],
     coachesNotes: p.coachesNotes || [],
   };

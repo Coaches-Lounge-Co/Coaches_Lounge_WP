@@ -135,7 +135,7 @@ export default function Profile() {
           </div>
 
           {/* Performance Highlights */}
-          <div className="col-12 col-lg-8">
+          <div className="col-12">
             <div className="card cl-card h-100">
               <div className="card-body p-4">
                 <h2 className="cl-card-title mb-4">PERFORMANCE HIGHLIGHTS</h2>

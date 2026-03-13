@@ -1,5 +1,4 @@
-// src/pages/MyProfile.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 
@@ -14,18 +13,35 @@ function splitComma(text) {
     .filter(Boolean);
 }
 
+function isValidYouTubeUrl(url) {
+  if (!url) return false;
+
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.hostname.includes("youtube.com") ||
+      parsed.hostname.includes("youtu.be")
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function MyProfile() {
   const nav = useNavigate();
   const { currentProfile, updateMyProfile, signOut } = useAuth();
 
   const [draft, setDraft] = useState(null);
+  const [videoInput, setVideoInput] = useState("");
 
   useEffect(() => {
     if (!currentProfile) return;
+
     setDraft({
       ...currentProfile,
       strengthsText: joinComma(currentProfile.strengths),
       goalsText: joinComma(currentProfile.goals),
+      videoHighlights: currentProfile.videoHighlights || [],
     });
   }, [currentProfile]);
 
@@ -38,27 +54,64 @@ export default function MyProfile() {
     reader.readAsDataURL(file);
   }
 
- async function save() {
-  try {
-    await updateMyProfile({
-      name: draft.name,
-      location: draft.location,
-      avatarUrl: draft.avatarUrl || null,
-      role: draft.role,
+  function addVideo() {
+    const trimmed = videoInput.trim();
 
-      school: draft.role === "Player" ? draft.school || "" : "",
-      positions: draft.role === "Player" ? draft.positions || "" : "",
-      program: draft.role === "Coach" ? draft.program || "" : "",
+    if (!trimmed) return;
 
-      strengths: splitComma(draft.strengthsText || ""),
-      goals: splitComma(draft.goalsText || ""),
-    });
+    if (!isValidYouTubeUrl(trimmed)) {
+      alert("Please enter a valid YouTube link.");
+      return;
+    }
 
-    nav(`/people/${currentProfile.id}`);
-  } catch (error) {
-    alert(error.message || "Failed to save profile.");
+    const alreadyExists = (draft.videoHighlights || []).some(
+      (video) => video.url === trimmed
+    );
+
+    if (alreadyExists) {
+      alert("That video link has already been added.");
+      return;
+    }
+
+    setDraft((prev) => ({
+      ...prev,
+      videoHighlights: [...(prev.videoHighlights || []), { url: trimmed }],
+    }));
+
+    setVideoInput("");
   }
-}
+
+  function removeVideo(indexToRemove) {
+    setDraft((prev) => ({
+      ...prev,
+      videoHighlights: (prev.videoHighlights || []).filter(
+        (_, index) => index !== indexToRemove
+      ),
+    }));
+  }
+
+  async function save() {
+    try {
+      await updateMyProfile({
+        name: draft.name,
+        location: draft.location,
+        avatarUrl: draft.avatarUrl || null,
+        role: draft.role,
+
+        school: draft.role === "Player" ? draft.school || "" : "",
+        positions: draft.role === "Player" ? draft.positions || "" : "",
+        program: draft.role === "Coach" ? draft.program || "" : "",
+
+        strengths: splitComma(draft.strengthsText || ""),
+        goals: splitComma(draft.goalsText || ""),
+        videoHighlights: draft.videoHighlights || [],
+      });
+
+      nav(`/people/${currentProfile.id}`);
+    } catch (error) {
+      alert(error.message || "Failed to save profile.");
+    }
+  }
 
   if (!isReady) {
     return (
@@ -66,7 +119,9 @@ export default function MyProfile() {
         <h1 className="section-title">My Profile</h1>
         <div className="cl-card p-4">
           <p className="text-muted mb-3">You’re not signed in.</p>
-          <Link className="btn btn-primary" to="/auth">Go to Sign In</Link>
+          <Link className="btn btn-primary" to="/auth">
+            Go to Sign In
+          </Link>
         </div>
       </div>
     );
@@ -80,7 +135,13 @@ export default function MyProfile() {
         <div className="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-3">
           <h1 className="section-title mb-0">My Profile</h1>
           <div className="d-flex gap-2">
-            <button className="btn btn-outline-primary" onClick={() => { signOut(); nav("/"); }}>
+            <button
+              className="btn btn-outline-primary"
+              onClick={() => {
+                signOut();
+                nav("/");
+              }}
+            >
               Sign Out
             </button>
             <Link className="btn btn-outline-primary" to={`/people/${currentProfile.id}`}>
@@ -93,7 +154,12 @@ export default function MyProfile() {
           <div className="row g-3">
             <div className="col-12">
               <label className="form-label fw-bold">Profile photo</label>
-              <input className="form-control" type="file" accept="image/*" onChange={(e) => onPickAvatar(e.target.files?.[0])} />
+              <input
+                className="form-control"
+                type="file"
+                accept="image/*"
+                onChange={(e) => onPickAvatar(e.target.files?.[0])}
+              />
               {draft.avatarUrl && (
                 <div className="mt-3">
                   <img
@@ -107,12 +173,20 @@ export default function MyProfile() {
 
             <div className="col-12">
               <label className="form-label fw-bold">Name</label>
-              <input className="form-control form-control-lg" value={draft.name} onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))} />
+              <input
+                className="form-control form-control-lg"
+                value={draft.name}
+                onChange={(e) => setDraft((p) => ({ ...p, name: e.target.value }))}
+              />
             </div>
 
             <div className="col-12 col-md-6">
               <label className="form-label fw-bold">Role</label>
-              <select className="form-select form-select-lg" value={draft.role} onChange={(e) => setDraft((p) => ({ ...p, role: e.target.value }))}>
+              <select
+                className="form-select form-select-lg"
+                value={draft.role}
+                onChange={(e) => setDraft((p) => ({ ...p, role: e.target.value }))}
+              >
                 <option value="Player">Player</option>
                 <option value="Coach">Coach</option>
               </select>
@@ -121,35 +195,107 @@ export default function MyProfile() {
 
             <div className="col-12 col-md-6">
               <label className="form-label fw-bold">Location</label>
-              <input className="form-control form-control-lg" value={draft.location || ""} onChange={(e) => setDraft((p) => ({ ...p, location: e.target.value }))} />
+              <input
+                className="form-control form-control-lg"
+                value={draft.location || ""}
+                onChange={(e) => setDraft((p) => ({ ...p, location: e.target.value }))}
+              />
             </div>
 
             {draft.role === "Player" ? (
               <>
                 <div className="col-12 col-md-6">
                   <label className="form-label fw-bold">School</label>
-                  <input className="form-control form-control-lg" value={draft.school || ""} onChange={(e) => setDraft((p) => ({ ...p, school: e.target.value }))} />
+                  <input
+                    className="form-control form-control-lg"
+                    value={draft.school || ""}
+                    onChange={(e) => setDraft((p) => ({ ...p, school: e.target.value }))}
+                  />
                 </div>
                 <div className="col-12 col-md-6">
                   <label className="form-label fw-bold">Positions</label>
-                  <input className="form-control form-control-lg" value={draft.positions || ""} onChange={(e) => setDraft((p) => ({ ...p, positions: e.target.value }))} />
+                  <input
+                    className="form-control form-control-lg"
+                    value={draft.positions || ""}
+                    onChange={(e) => setDraft((p) => ({ ...p, positions: e.target.value }))}
+                  />
                 </div>
               </>
             ) : (
               <div className="col-12">
                 <label className="form-label fw-bold">Program</label>
-                <input className="form-control form-control-lg" value={draft.program || ""} onChange={(e) => setDraft((p) => ({ ...p, program: e.target.value }))} />
+                <input
+                  className="form-control form-control-lg"
+                  value={draft.program || ""}
+                  onChange={(e) => setDraft((p) => ({ ...p, program: e.target.value }))}
+                />
               </div>
             )}
 
             <div className="col-12">
               <label className="form-label fw-bold">Strengths (comma-separated)</label>
-              <input className="form-control form-control-lg" value={draft.strengthsText || ""} onChange={(e) => setDraft((p) => ({ ...p, strengthsText: e.target.value }))} />
+              <input
+                className="form-control form-control-lg"
+                value={draft.strengthsText || ""}
+                onChange={(e) => setDraft((p) => ({ ...p, strengthsText: e.target.value }))}
+              />
             </div>
 
             <div className="col-12">
               <label className="form-label fw-bold">Goals (comma-separated)</label>
-              <input className="form-control form-control-lg" value={draft.goalsText || ""} onChange={(e) => setDraft((p) => ({ ...p, goalsText: e.target.value }))} />
+              <input
+                className="form-control form-control-lg"
+                value={draft.goalsText || ""}
+                onChange={(e) => setDraft((p) => ({ ...p, goalsText: e.target.value }))}
+              />
+            </div>
+
+            <div className="col-12 mt-3">
+              <label className="form-label fw-bold">Highlight Videos</label>
+              <div className="d-flex gap-2 flex-column flex-md-row">
+                <input
+                  className="form-control form-control-lg"
+                  placeholder="Paste YouTube link"
+                  value={videoInput}
+                  onChange={(e) => setVideoInput(e.target.value)}
+                />
+                <button type="button" className="btn btn-primary" onClick={addVideo}>
+                  Add Video
+                </button>
+              </div>
+              <div className="small text-muted mt-2">
+                Supports youtube.com, youtu.be, and YouTube Shorts links.
+              </div>
+            </div>
+
+            <div className="col-12">
+              {(draft.videoHighlights || []).length === 0 ? (
+                <div className="text-muted">No videos added yet.</div>
+              ) : (
+                <div className="d-flex flex-column gap-2">
+                  {draft.videoHighlights.map((video, index) => (
+                    <div
+                      key={`${video.url}-${index}`}
+                      className="d-flex justify-content-between align-items-center gap-2 border rounded p-3"
+                    >
+                      <div
+                        className="text-truncate"
+                        style={{ minWidth: 0, flex: 1 }}
+                        title={video.url}
+                      >
+                        {video.url}
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => removeVideo(index)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="col-12 d-flex gap-2 mt-2">
