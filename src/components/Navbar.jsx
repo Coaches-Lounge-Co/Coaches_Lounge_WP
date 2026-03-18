@@ -8,7 +8,7 @@ export default function Navbar() {
   const isLoggedIn = !!currentProfile;
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm sticky-top">
       <div className="container">
         <NavLink className="navbar-brand d-flex align-items-center gap-2" to="/">
           <img
