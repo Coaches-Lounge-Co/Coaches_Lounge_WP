@@ -1,23 +1,32 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
-  createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signInWithEmailAndPassword,
   signOut as firebaseSignOut,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  deleteUser,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { auth, db } from "../firebase/firebase";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [firebaseUser, setFirebaseUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setFirebaseUser(user);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
 
       if (!user) {
         setCurrentProfile(null);
@@ -30,9 +39,43 @@ export function AuthProvider({ children }) {
         const profileSnap = await getDoc(profileRef);
 
         if (profileSnap.exists()) {
-          setCurrentProfile({ id: user.uid, ...profileSnap.data() });
+          setCurrentProfile({
+            id: profileSnap.id,
+            ...profileSnap.data(),
+          });
         } else {
-          setCurrentProfile(null);
+          const starterProfile = {
+            id: user.uid,
+            email: user.email || "",
+            name: user.displayName || "",
+            role: "Player",
+            avatarUrl: user.photoURL || null,
+            age: "",
+            location: "",
+            height: "",
+            resume: "",
+            yearsExperience: "",
+            awards: [],
+            socialLinks: [],
+            ageConfirmed: false,
+            followersCount: 0,
+            likesCount: 0,
+            videoHighlights: [],
+            school: "",
+            positions: "",
+            program: "",
+            strengths: [],
+            goals: [],
+            stats: { activeEvents: 0, totalGames: 0, connections: 0 },
+            highlights: [],
+            recentActivity: [],
+            coachesNotes: [],
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          };
+
+          await setDoc(profileRef, starterProfile);
+          setCurrentProfile(starterProfile);
         }
       } catch (error) {
         console.error("Error loading profile:", error);
@@ -42,36 +85,97 @@ export function AuthProvider({ children }) {
       }
     });
 
-    return unsubscribe;
+    return () => unsub();
   }, []);
 
-  async function signUp({ email, password, profile }) {
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
+  async function signIn(email, password) {
+    return await signInWithEmailAndPassword(auth, email, password);
+  }
 
-    const profileData = {
-      ...profile,
-      email,
-      createdAt: serverTimestamp(),
+  async function signUp({ email, password, profile }) {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+
+      const starterProfile = {
+        id: user.uid,
+        email: user.email || email || "",
+        name: profile?.name || "",
+        role: profile?.role || "Player",
+        avatarUrl: profile?.avatarUrl || null,
+        age: profile?.age || "",
+        location: profile?.location || "",
+        height: profile?.height || "",
+        resume: profile?.resume || "",
+        yearsExperience: profile?.yearsExperience || "",
+        awards: profile?.awards || [],
+        socialLinks: profile?.socialLinks || [],
+        ageConfirmed: profile?.ageConfirmed || false,
+        followersCount: 0,
+        likesCount: 0,
+        videoHighlights: profile?.videoHighlights || [],
+        school: profile?.school || "",
+        positions: profile?.positions || "",
+        program: profile?.program || "",
+        strengths: profile?.strengths || [],
+        goals: profile?.goals || [],
+        stats: profile?.stats || { activeEvents: 0, totalGames: 0, connections: 0 },
+        highlights: profile?.highlights || [],
+        recentActivity: profile?.recentActivity || [],
+        coachesNotes: profile?.coachesNotes || [],
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, "profiles", user.uid), starterProfile);
+      setCurrentProfile(starterProfile);
+
+      return cred;
+    } catch (error) {
+      console.error("Failed to sign up:", error);
+
+      if (error.code === "auth/email-already-in-use") {
+        throw new Error("That email is already in use.");
+      }
+
+      if (error.code === "auth/invalid-email") {
+        throw new Error("Please enter a valid email address.");
+      }
+
+      if (error.code === "auth/weak-password") {
+        throw new Error("Password should be at least 6 characters.");
+      }
+
+      throw new Error("Failed to create account.");
+    }
+  }
+
+  async function updateMyProfile(profileUpdates) {
+    const user = auth.currentUser;
+
+    if (!user) {
+      throw new Error("No authenticated user found.");
+    }
+
+    const profileRef = doc(db, "profiles", user.uid);
+
+    const payload = {
+      ...profileUpdates,
       updatedAt: serverTimestamp(),
     };
 
-    await setDoc(doc(db, "profiles", uid), profileData);
+    try {
+      await setDoc(profileRef, payload, { merge: true });
 
-    setCurrentProfile({ id: uid, ...profileData });
-    return uid;
-  }
-
-  async function signIn({ email, password }) {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    const uid = cred.user.uid;
-
-    const profileSnap = await getDoc(doc(db, "profiles", uid));
-    if (profileSnap.exists()) {
-      setCurrentProfile({ id: uid, ...profileSnap.data() });
+      setCurrentProfile((prev) => ({
+        ...(prev || {}),
+        id: user.uid,
+        ...profileUpdates,
+      }));
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      throw new Error("Failed to save profile.");
     }
-
-    return uid;
   }
 
   async function signOut() {
@@ -79,43 +183,75 @@ export function AuthProvider({ children }) {
     setCurrentProfile(null);
   }
 
-  async function updateMyProfile(patch) {
-    if (!firebaseUser) throw new Error("Not signed in.");
+  async function deleteMyAccount(password) {
+    const user = auth.currentUser;
 
-    const profileRef = doc(db, "profiles", firebaseUser.uid);
+    if (!user) {
+      throw new Error("No authenticated user found.");
+    }
 
-    const safePatch = {
-      ...patch,
-      updatedAt: serverTimestamp(),
-    };
+    if (!user.email) {
+      throw new Error("This account does not have an email associated with it.");
+    }
 
-    await updateDoc(profileRef, safePatch);
+    try {
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
 
-    const updatedSnap = await getDoc(profileRef);
-    if (updatedSnap.exists()) {
-      setCurrentProfile({ id: firebaseUser.uid, ...updatedSnap.data() });
+      await deleteDoc(doc(db, "profiles", user.uid));
+      await deleteUser(user);
+
+      setCurrentProfile(null);
+      setCurrentUser(null);
+    } catch (error) {
+      console.error("Failed to delete account:", error);
+
+      if (error.code === "auth/wrong-password") {
+        throw new Error("Incorrect password.");
+      }
+
+      if (error.code === "auth/invalid-credential") {
+        throw new Error("Invalid credentials. Please try again.");
+      }
+
+      if (error.code === "auth/too-many-requests") {
+        throw new Error("Too many attempts. Please wait and try again.");
+      }
+
+      if (error.code === "auth/requires-recent-login") {
+        throw new Error("Please sign in again and retry deleting your account.");
+      }
+
+      throw new Error("Failed to delete account.");
     }
   }
 
   const value = useMemo(
     () => ({
-      currentUserId: firebaseUser?.uid ?? null,
+      currentUser,
       currentProfile,
-      loading,
-      signUp,
+      updateMyProfile,
       signIn,
       signOut,
-      updateMyProfile,
-      firebaseUser,
+      signUp,
+      deleteMyAccount,
     }),
-    [firebaseUser, currentProfile, loading]
+    [currentUser, currentProfile]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {!loading && children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
+
+  if (!ctx) {
+    throw new Error("useAuth must be used inside an AuthProvider.");
+  }
+
   return ctx;
 }

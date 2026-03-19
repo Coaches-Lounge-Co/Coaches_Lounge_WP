@@ -3,7 +3,8 @@
   --cl-dark: #111111;
   --cl-bg: #f6f7f9;
   --cl-red-text: #a40000;     /* darker red for text on white */
-  --cl-red-hover: #7f0000;    /* hover state for text links */
+  --cl-red-hover: #7f0000;
+  --cl-white-text: #ffffff;    /* hover state for text links */
 }
 
 body {
@@ -312,7 +313,7 @@ body {
 
 .badge.cl-badge {
   background: rgba(164, 0, 0, 0.12);
-  color: var(--cl-red-text);
+  color: var(--cl-white-text);
   font-weight: 700;
 }
 

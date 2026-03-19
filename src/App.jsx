@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import Home from "./pages/Home.jsx";
 import Discover from "./pages/Discover.jsx";
 import Messages from "./pages/Messages.jsx";
@@ -29,6 +30,7 @@ export default function App() {
 
 
       </Routes>
+      <Footer />
     </BrowserRouter>
   );
 }

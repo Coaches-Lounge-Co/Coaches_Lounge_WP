@@ -89,7 +89,7 @@ export default function Auth() {
       if (!password.trim()) throw new Error("Password is required.");
 
       if (mode === "signin") {
-        await signIn({ email, password });
+        await signIn( email, password );
         nav(redirectTo);
         return;
       }

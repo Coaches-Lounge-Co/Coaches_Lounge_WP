@@ -111,18 +111,6 @@ export default function Home() {
           </p>*/}  
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-4 bg-white border-top">
-        <div className="container d-flex justify-content-between flex-wrap gap-2">
-          <div className="text-muted">© {new Date().getFullYear()} Coaches Lounge</div>
-          <div className="d-flex gap-3">
-            <a href="#enter" className="text-decoration-none text-muted">About</a>
-            <a href="#events" className="text-decoration-none text-muted">Events</a>
-            <a href="#enter" className="text-decoration-none text-muted">Contact</a>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
