@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import CL_Logo from "../assets/CL_Logo.png";
+import CL_Logo from "../assets/OG_CL_Logo.png";
 
 export default function Navbar() {
   const navigate = useNavigate();
