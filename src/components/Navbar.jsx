@@ -45,7 +45,6 @@ export default function Navbar() {
               </NavLink>
             </li>
 
-            {/* ✅ Auth-aware section */}
             {!isLoggedIn ? (
               <>
                 <li className="nav-item">

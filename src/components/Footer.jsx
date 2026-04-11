@@ -1,13 +1,10 @@
-import { NavLink } from "react-router-dom";
 import { FaInstagram } from "react-icons/fa";
-import { useAuth } from "../context/authContext";
+import { NavLink } from "react-router-dom";
 
 export default function Footer() {
   return (
     <footer className="bg-dark text-white py-5 mt-5">
       <div className="container text-center">
-
-        {/* Social Icons */}
         <div className="d-flex justify-content-center gap-4 mb-4">
           <a
             href="https://www.instagram.com/coaches.lounge/"
@@ -19,7 +16,6 @@ export default function Footer() {
           </a>
         </div>
 
-        {/* CTA */}
         <p className="mb-3 fs-5">
           Sign up and join the community.
         </p>
@@ -31,7 +27,6 @@ export default function Footer() {
           JOIN NOW
         </NavLink>
 
-        {/* Footer Links */}
         <div className="d-flex justify-content-center gap-4 flex-wrap small mb-3">
           <NavLink to="/faq" className="text-decoration-none text-white-50">
             FAQ
@@ -50,12 +45,10 @@ export default function Footer() {
           </NavLink>
         </div>
 
-        {/* Bottom */}
         <div className="small text-white-50">
           © {new Date().getFullYear()} Coaches Lounge LLC
         </div>
 
-        {/* Powered By */}
         <div className="small mt-2">
           Powered by{" "}
           <a
